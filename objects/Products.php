@@ -23,6 +23,7 @@ class Products
     function AddProduct($product_name, $product_description, $product_price, $product_id, $product_amount)
     {
         $error = new stdClass();
+       
         $sql = "SELECT amount FROM product WHERE name=:product_name_IN AND price=:product_price_IN AND product_id=:product_id_IN ";
         $statement = $this->database_connection->prepare($sql);
         // $statement->bindParam(":product_amount_IN", $product_amount);
