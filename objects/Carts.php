@@ -29,6 +29,7 @@ class Carts
         $order_number = $this->GetOrderNumber();
         $id = $this->GetUserId($token);
         // die();
+        $order_number = md5($order_number . $id);
         $this->AddOrdertoCart($id, $order_number);
         $product_data = $this->CheckProductAvailability($product_name, $product_id, $purchased_amount);
         $product_remain = $product_data[0];
@@ -49,7 +50,7 @@ class Carts
     function AddOrdertoCart($user_id, $order_number)
     {
         $error = new stdClass();
-        $order_number = md5($order_number . $user_id);
+
 
         $sql = "INSERT INTO cart (user_id,order_number) VALUES (:user_id_IN,:order_number_IN)";
         $statement = $this->database_connection->prepare($sql);
@@ -65,6 +66,7 @@ class Carts
     {
         $error = new stdClass();
         $checkout = $this->CheckCartStatuts($token);
+
         if ($checkout < 1) {
             $sql = "INSERT INTO order_items ( order_number,product_id, product_amount ) VALUES (:order_number_IN,:product_id_IN,:product_amount_IN)";
             $statement = $this->database_connection->prepare($sql);
@@ -133,6 +135,8 @@ class Carts
     function SubtractProductAmount($product_id, $product_amount)
     {
         $error = new stdClass();
+        //$statement->bindParam(":product_price_IN", $product_price);
+        //$statement->bindParam(":product_id_IN", $product_id);
         $sql = "UPDATE product SET amount=:product_amount_IN WHERE  id = :product_id_IN";
         $statement = $this->database_connection->prepare($sql);
         $statement->bindParam(":product_amount_IN", $product_amount);
@@ -151,7 +155,7 @@ class Carts
         $error = new stdClass();
         $checkout = 1;
         $last_used = time() - 3600;
-        $sql = "UPDATE  SESSIONS SET  last_used=:last_used_IN,checkout_status=:checkout_IN  WHERE token=:token_number_IN ";
+        $sql = "UPDATE  sessions SET  last_used=:last_used_IN,checkout_status=:checkout_IN  WHERE token=:token_number_IN ";
         $statement = $this->database_connection->prepare($sql);
         $statement->bindParam(":last_used_IN", $last_used);
         $statement->bindParam(":checkout_IN", $checkout);
@@ -163,5 +167,63 @@ class Carts
             die();
         }
         echo "You have successfully checkout!";
+    }
+    function RemoveFromCart($orderId, $product_id)
+    {
+        $error = new stdClass();
+
+        $product_amount = $this->GetProductAmount($orderId, $product_id);
+        $this->AddProductAmount($product_id, $product_amount);
+        $sql = "DELETE FROM order_items WHERE product_id=:product_id_IN AND order_number = :order_id";
+        $statement = $this->database_connection->prepare($sql);
+        $statement->bindParam(":product_id_IN", $product_id);
+        $statement->bindParam(":order_id", $orderId);
+        if (!$statement->execute()) {
+            $error->message = "Could not execute query!";
+            $error->code = "0000";
+            print_r(json_encode($error));
+            die();
+        }
+    }
+    function AddProductAmount($product_id, $product_amount)
+    {
+        $error = new stdClass();
+        $sql = "SELECT amount FROM product WHERE  id=:product_id_IN ";
+        $statement = $this->database_connection->prepare($sql);
+        $statement->bindParam(":product_id_IN", $product_id);
+        if (!$statement->execute()) {
+            $error->message = "Could not execute query!";
+            $error->code = "0000";
+            die();
+        }
+        $row = $statement->fetch(PDO::FETCH_ASSOC);
+        $amount = $row['amount'];
+        $product_amount_add = $amount + $product_amount;
+        $sql = "UPDATE product SET amount=:product_amount_IN WHERE id = :product_id_IN";
+        $statement = $this->database_connection->prepare($sql);
+        $statement->bindParam(":product_amount_IN", $product_amount_add);
+        $statement->bindParam(":product_id_IN", $product_id);
+        if (!$statement->execute()) {
+            $error->message = "Could not execute query!";
+            $error->code = "0000";
+            die();
+        }
+        echo "Done!";
+    }
+    function GetProductAmount($orderId, $product_id)
+    {
+        $error = new stdClass();
+        $sql = "SELECT product_amount FROM order_items WHERE  product_id = :product_id_IN AND order_number = :order_number_IN";
+        $statement = $this->database_connection->prepare($sql);
+        $statement->bindParam(":product_id_IN", $product_id);
+        $statement->bindParam(":order_number_IN", $orderId);
+        //$statement->bindParam(":product_price_IN", $product_price);
+        if (!$statement->execute()) {
+            $error->message = "Could not execute query!";
+            $error->code = "0000";
+            die();
+        }
+        $row = $statement->fetch(PDO::FETCH_ASSOC);
+        return $row['product_amount'];
     }
 }
