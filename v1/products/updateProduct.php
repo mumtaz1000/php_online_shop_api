@@ -31,4 +31,4 @@ if (isset($_GET['product_id'])) {
 $product = new Products($pdo);
 //$product->updateProductImage($image, $name, $product_id);
 
-echo json_encode($product->UpdateProduct($product_name, $product_description, $product_price, $product_id, $product_amount));
+echo json_encode($product->UpdateProduct($name, $description, $price, $product_id, $amount));

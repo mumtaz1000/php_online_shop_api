@@ -68,7 +68,8 @@ class Users
             $row = $statement->fetch();
             return $this->CreateToken($row['id'], $row['name']);
         } else {
-            echo "No $this->username_IN found. You need to signup!";
+            echo "No $this->username found. You need to signup!";
+            die();
         }
     }
     function CreateToken($id, $username)

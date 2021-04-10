@@ -23,7 +23,7 @@ class Products
     function AddProduct($product_name, $product_description, $product_price, $product_id, $product_amount)
     {
         $error = new stdClass();
-       
+
         $sql = "SELECT amount FROM product WHERE name=:product_name_IN AND price=:product_price_IN AND product_id=:product_id_IN ";
         $statement = $this->database_connection->prepare($sql);
         // $statement->bindParam(":product_amount_IN", $product_amount);
@@ -59,6 +59,7 @@ class Products
                 die();
             } else {
                 echo "Product is successfully created into database!";
+                die();
             }
         }
     }
@@ -78,6 +79,7 @@ class Products
             die();
         }
         echo "Product amount is successfully added to database!";
+        die();
     }
     function DeleteProduct($product_name, $product_id)
     {
@@ -91,9 +93,11 @@ class Products
             if ($statement->rowCount() < 1) {
                 $message->text = "Product does not exist!";
                 return $message;
+            } else {
+                $message->text = "Prouct is successfully deleted from database!";
+                print_r(json_encode($message));
+                die();
             }
-
-            $message->text = "Prouct is successfully deleted from database!";
         } else {
             $message->error = "All arguments need a value!";
             $message->code = "0001";
@@ -124,6 +128,7 @@ class Products
             print_r(json_encode($error));
             die();
         }
+        die();
     }
     function UpdateProductName($product_name, $product_id)
     {
@@ -216,12 +221,14 @@ class Products
             return "Cannot update product price!";
         }
     }
-    function getAllProducts(){
+    function getAllProducts()
+    {
         $sql = "SELECT name, description, price, amount, product_id FROM product";
         $statement = $this->database_connection->prepare($sql);
         $statement->execute();
         echo "<pre>";
         echo json_encode($statement->fetchAll());
         echo "</pre>";
+        die();
     }
 }
