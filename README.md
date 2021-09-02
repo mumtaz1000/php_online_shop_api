@@ -1,4 +1,4 @@
-# php_online_shop_api
+# Php online shop REST APIs
 Project Description:
 Online shopping system REST APIs in PHP. 
 This project consists of 3 parts 
